@@ -1,0 +1,5 @@
+*.traj
+*.txt
+cof_*/
+__pycache__/
+.opt.py.swp
