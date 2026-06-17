@@ -1,0 +1,16 @@
+{
+  "converged": true,
+  "thresholds": {
+    "fmax": 0.05,
+    "stress_fmax": 0.01,
+    "disp_fmax": 0.001,
+    "energy_fmax": 1e-06
+  },
+  "final_values": {
+    "fmax": 0.0016509018605574965,
+    "stress_max": 1.2228186396238454e-05,
+    "disp_max": 0.0003447626033117156,
+    "energy_diff": 2.980232238769531e-07,
+    "final_energy": -7695.572787449504
+  }
+}

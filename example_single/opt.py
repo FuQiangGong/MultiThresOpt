@@ -20,7 +20,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 import multiprocessing
 
 # MLIP model path 
-MODEL_PATH = "frozen_model.pth"
+MODEL_PATH = "/Users/f.gong@bham.ac.uk/Desktop/frozen_model.pth"
 
 # Convergence thresholds
 FORCE_MAX = 0.05    # eV/A
@@ -30,7 +30,7 @@ ENERG_MAX = 1e-6    # eV
 
 RANDOM_GENERATED = "./cof_10_P2_m_0KNSbmXE.res"       # path to an ASE-readable file (single structure) or a directory (batch)
 MAX_STEPS = 200              # maximum opt steps
-N_WORKERS = 10               # parallel number
+N_WORKERS = 1               # parallel number
 
 # Log files
 LOG_FILE = "single_opt.txt"             # recording the final optimisation status for each structure
