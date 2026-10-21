@@ -1,33 +1,33 @@
 # MultiThresOpt-ASE
 
 MultiThresOpt-ASE performs atomic and cell geometry optimisation with ASE,
-a DeepMD machine-learned interatomic potential, and multi-criteria
-convergence checks. In addition to the usual maximum atomic force criterion,
-an optimisation is considered converged only when the stress, per-step
-displacement, and per-step energy change also satisfy their thresholds.
+an ASE-compatible machine-learned interatomic potential (MLIP) calculator,
+and multi-criteria convergence checks. In addition to the usual maximum
+atomic force criterion, an optimisation is considered converged only when
+the stress, per-step displacement, and per-step energy change also satisfy
+their thresholds.
 
 The optimiser supports one structure or a directory of structures and can run
 batch jobs in parallel. It also records machine-readable status files and can
-resume an unfinished optimisation from its previous geometry.
+resume an unfinished optimisation from its previous geometry. Model
+initialisation is kept separate from the optimisation workflow, so any
+Python-backed model exposed through the ASE calculator interface can be used.
 
 ## Requirements
 
 - Python 3.9 or newer
 - [ASE](https://ase-lib.org/)
-- [DeepMD-kit](https://docs.deepmodeling.com/projects/deepmd/) with the
-  `deepmd.calculator.DP` calculator
 - NumPy
-- A compatible DeepMD model, named `frozen_model.pth` by default
+- A Python-backed MLIP calculator that implements the ASE calculator
+  interface and supplies potential energy, forces, and stress
 
-DeepMD-kit installation depends on the target CPU/GPU environment. Follow the
-official installation instructions for a wheel that matches your hardware,
-then install the remaining dependencies:
+Install the base Python dependencies:
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install ase numpy deepmd-kit
+python -m pip install ase numpy
 ```
 
 ## Installation
@@ -37,24 +37,48 @@ git clone https://github.com/FuQiangGong/MultiThresOpt.git
 cd MultiThresOpt
 ```
 
-Place the DeepMD model at the root of the project:
+Install the Python package for your chosen MLIP backend separately, following
+that backend's installation instructions. Model packages and model weights
+are not bundled with this repository.
 
-```text
-MultiThresOpt/
-|-- frozen_model.pth
-`-- opt.py
+## MLIP backends
+
+The workflow only assumes that the selected model can be assigned to
+`atoms.calc` and that it implements:
+
+- `get_potential_energy(atoms)`
+- `get_forces(atoms)`
+- `get_stress(atoms)`
+
+Stress support is required because `FrechetCellFilter` relaxes the cell and
+the additional convergence criterion examines the stress tensor. A backend
+that calculates virial stress can expose it through ASE's standard stress
+property.
+
+The script contains a single backend-specific import and calculator
+initialisation near the top. Replace that block with the setup supplied by
+your chosen backend, keeping the calculator variable named `dp`:
+
+```python
+from my_mlip import MyCalculator
+
+dp = MyCalculator(...)
 ```
 
-Alternatively, set `MODEL_PATH` near the top of `opt.py` to another model
-location.
+The calculator is later assigned with `atoms.calc = dp`, so keeping this
+variable name avoids changing the optimisation code. Consult the backend's
+documentation for model loading, device selection, and any optional settings.
+Compatibility is determined by its ASE calculator interface and support for
+energy, forces, and stress, not by a particular MLIP package.
+
+Configure the model path and other backend options where the calculator is
+created near the top of `opt.py`.
 
 ## Configuration
 
 The script is configured through variables at the top of `opt.py`:
 
 ```python
-MODEL_PATH = "frozen_model.pth"
-
 FORCE_MAX = 0.05    # eV/A
 STRESS_MAX = 0.01   # eV/A^3
 DISP_MAX = 0.001    # A
@@ -70,7 +94,6 @@ REMAINING_FILE = "remaining-0.txt"
 
 | Variable | Purpose |
 | --- | --- |
-| `MODEL_PATH` | Path to the DeepMD model. |
 | `FORCE_MAX` | Maximum permitted atomic force, in eV/A. |
 | `STRESS_MAX` | Maximum permitted absolute stress component, in eV/A^3. |
 | `DISP_MAX` | Maximum per-step atomic displacement, in A. |
@@ -95,8 +118,8 @@ RANDOM_GENERATED = "./example_multi"
 
 ASE reads the input structure files, and formats that the installed ASE build
 cannot read are reported and skipped. For batch runs, `N_WORKERS` is capped by
-the available computing resources and should be chosen to fit the model's CPU
-or GPU memory requirements.
+the available computing resources and should be chosen to fit the selected
+calculator's CPU or GPU memory requirements.
 
 ## Running
 
@@ -175,4 +198,4 @@ their histories.
 ```
 
 The example outputs illustrate successful convergence and the available log
-formats. The DeepMD model is not included in the repository.
+formats. No MLIP model weights are included in the repository.
