@@ -168,6 +168,9 @@ The phonon workflow writes:
 | `phonon.dos.dat` | Phonon density of states. |
 | `phonon.thermo.dat` | Zero-point energy and thermodynamic values by temperature. |
 
+An example run and its complete output set are available in
+`example_phonon/`.
+
 The reusable multi-criteria optimiser is defined in `multithresopt.py` and is
 imported by both `opt.py` and `phonon_mlip.py`.
 
@@ -233,6 +236,7 @@ their histories.
 |-- opt.py
 |-- phonon_mlip.py
 |-- multithresopt.py
+|-- example_phonon/    # Example phonon run and output files
 |-- example_single/    # Single-structure example run and results
 `-- example_multi/     # Parallel batch example run and results
 ```
