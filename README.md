@@ -13,6 +13,10 @@ resume an unfinished optimisation from its previous geometry. Model
 initialisation is kept separate from the optimisation workflow, so any
 Python-backed model exposed through the ASE calculator interface can be used.
 
+The repository also includes a finite-displacement phonon workflow that uses
+the same optimiser and computes Gamma-point modes, densities of states, and
+thermodynamic properties.
+
 ## Requirements
 
 - Python 3.9 or newer
@@ -133,6 +137,40 @@ relax. A structure is written as converged only if all enabled criteria pass.
 The displacement and energy checks compare the current step with the previous
 step.
 
+## Phonon calculations
+
+`phonon_mlip.py` optimises a structure, evaluates finite-displacement forces in
+parallel with worker-local MLIP calculators, and constructs the phonon
+properties:
+
+```bash
+python phonon_mlip.py \
+  --model path/to/model \
+  --struct structure.cif \
+  --workers 8 \
+  --supercell 2 2 2 \
+  --temperatures 100,200,298.15,300
+```
+
+The structure can be read through ASE or, as an optional fallback, pymatgen.
+Use `--no-opt` to skip the initial optimisation and `--allow-unconverged` to
+continue when the optimisation criteria are not all satisfied.
+
+The phonon workflow writes:
+
+| File | Description |
+| --- | --- |
+| `opt.log` | Multi-criteria optimisation log, unless `--no-opt` is used. |
+| `opt.cif` | Optimised structure, unless `--no-opt` is used. |
+| `phonon.mode.dat` | Gamma-point mode frequencies in cm^-1. |
+| `phonon.eigenvectors.real.dat` | Real part of the Gamma-point eigenvectors. |
+| `phonon.eigenvectors.imag.dat` | Imaginary part of the Gamma-point eigenvectors. |
+| `phonon.dos.dat` | Phonon density of states. |
+| `phonon.thermo.dat` | Zero-point energy and thermodynamic values by temperature. |
+
+The reusable multi-criteria optimiser is defined in `multithresopt.py` and is
+imported by both `opt.py` and `phonon_mlip.py`.
+
 ## Outputs
 
 For an input named `structure.res`, the optimiser creates a directory named
@@ -193,9 +231,12 @@ their histories.
 ```text
 .
 |-- opt.py
+|-- phonon_mlip.py
+|-- multithresopt.py
 |-- example_single/    # Single-structure example run and results
 `-- example_multi/     # Parallel batch example run and results
 ```
 
 The example outputs illustrate successful convergence and the available log
-formats. No MLIP model weights are included in the repository.
+formats. No MLIP model packages or model weights are included in the
+repository.
